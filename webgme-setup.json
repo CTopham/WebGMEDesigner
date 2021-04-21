@@ -1,0 +1,36 @@
+{
+  "components": {
+    "plugins": {
+      "miniPlug": {
+        "src": "src/plugins/miniPlug",
+        "test": "test/plugins/miniPlug"
+      }
+    },
+    "seeds": {
+      "MiniProjectSeed": {
+        "src": "src/seeds/MiniProjectSeed"
+      }
+    },
+    "visualizers": {
+      "miniViz": {
+        "src": "panels/miniViz/miniVizPanel",
+        "title": "miniViz",
+        "panel": "src/visualizers/panels/miniViz",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/miniViz"
+      },
+      "PetriViz": {
+        "src": "panels/PetriViz/PetriVizPanel",
+        "title": "PetriViz",
+        "panel": "src/visualizers/panels/PetriViz",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/PetriViz"
+      }
+    }
+  },
+  "dependencies": {
+    "plugins": {},
+    "seeds": {},
+    "visualizers": {}
+  }
+}

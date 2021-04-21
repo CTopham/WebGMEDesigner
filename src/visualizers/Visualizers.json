@@ -1,0 +1,14 @@
+[
+  {
+    "id": "miniViz",
+    "title": "miniViz",
+    "panel": "panels/miniViz/miniVizPanel",
+    "DEBUG_ONLY": false
+  },
+  {
+    "id": "PetriViz",
+    "title": "PetriViz",
+    "panel": "panels/PetriViz/PetriVizPanel",
+    "DEBUG_ONLY": false
+  }
+]
