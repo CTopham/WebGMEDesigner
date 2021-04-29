@@ -15,6 +15,7 @@ define(['jointjs', 'css!./styles/PetriVizWidget.css'], function (joint) {
         this._el = container;
 
         this.nodes = {};
+
         this._initialize();
 
         this._logger.debug('ctor finished');
@@ -46,73 +47,144 @@ define(['jointjs', 'css!./styles/PetriVizWidget.css'], function (joint) {
             // console.log(currentElement);
             if (self._webgmePN) {
                 // console.log(self._webgmeSM.id2place[currentElement.id]);
-                self._setCurrentState(self._webgmePN.id2state[currentElement.id]);
+                self._setCurrentState(self._webgmePN.id2place[currentElement.id]);
             }
         });
         this._webgmePN = null;
     };
 
-    //     // Create a dummy header
-    //     this._el.append('<h3>PetriViz Events:</h3>');
-
-    //     // Registering to events can be done with jQuery (as normal)
-    //     this._el.on('dblclick', function (event) {
-    //         event.stopPropagation();
-    //         event.preventDefault();
-    //         self.onBackgroundDblClick();
-    //     });
-    // };
 
     PetriVizWidget.prototype.onWidgetContainerResize = function (width, height) {
         this._logger.debug('Widget is resizing...');
     };
 
-
+    
     // State Machine manipulating functions called from the controller
     PetriVizWidget.prototype.initMachine = function (machineDescriptor) {
+        var pnn = joint.shapes.pn; // could use this library
         const self = this;
-        console.log(machineDescriptor);
+        //console.log(machineDescriptor); // ---- print
         self._webgmePN = machineDescriptor;
         self._jointPN.clear();
         const pn = self._webgmePN;
         pn.id2place = {};  
-
+        console.log('update is ' + pn.update) // ---- print
         Object.keys(pn.places).forEach(placeId => {
             let vertex = null;
-            console.log(placeId)
+            let givenToken = null;
+            let count = null;
+            let markers = null;
+            //console.log(placeId)
             //console.log(pn.places[placeId].position)
-            vertex = new joint.shapes.standard.Circle({
+            //console.log(pn.places[placeId].name)
+            markers = pn.places[placeId].markers;
+            givenToken = Object.values(markers);
+            givenToken.forEach(element => {      
+                count = Object.values(element).length
+            });
+            let givenName = pn.places[placeId].name == null ? 'Skip' : pn.places[placeId].name
+            
+            // check if the play button was pressed, update wont be null
+            // if givenNode == currentNode, then deduct
+            if ((pn.update  != null && givenName.startsWith("P") && placeId == pn.update[0])){
+                //deduct count update received from button
+                count = count - 1;
+                // set new currentnode
+                pn.current = pn.update[1];
+            }
+            if (givenName.startsWith("P")){
+                //console.log(givenName)
+                vertex = new joint.shapes.standard.Circle({
+                    position: pn.places[placeId].position,
+                    size: { width: 100, height: 100 },
+                    attrs: {
+                        label : {
+                            text: pn.places[placeId].name + '\n \n' + count,
+                            fontWeight: 'bold',
+                        },
+                        body: {
+                            strokeWidth: 3,
+                            cursor: 'pointer',
+                            text: 'test'
+                        }                    
+                    }
+                });     
+                vertex.addTo(self._jointPN);
+                pn.places[placeId].joint = vertex;
+                pn.id2place[vertex.id] = placeId;
+        }else{
+            vertex = new joint.shapes.standard.Rectangle({
                 position: pn.places[placeId].position,
-                size: { width: 100, height: 100 },
+                size: { width: 20, height: 100 },
                 attrs: {
                     label : {
                         text: pn.places[placeId].name,
-                        //event: 'element:label:pointerdown',
                         fontWeight: 'bold',
-                        //cursor: 'text',
-                        //style: {
-                        //    userSelect: 'text'
-                        //}
+                        fill: 'white'
                     },
                     body: {
+                        fill: 'black',
                         strokeWidth: 3,
                         cursor: 'pointer'
                     }
-                }
-            });
-            vertex.addTo(self._jointPN);
-            pn.places[placeId].joint = vertex;
-            pn.id2place[vertex.id] = placeId;
-        })
-    };
+                } 
+            });        
+        }
+        vertex.addTo(self._jointPN);
+        pn.places[placeId].joint = vertex;
+        pn.id2place[vertex.id] = placeId;
+         }) 
 
-    PetriVizWidget.prototype.destroyMachine = function () {
+         //- -- - -- - -- Link it - -- - -- - --
+         Object.keys(pn.places).forEach(placeId => {
+            //console.log(placeId)
+            const place = pn.places[placeId];
+            Object.keys(place.next).forEach(event => {
+                place.jointNext = place.jointNext || {};
+                const link = new joint.shapes.standard.Link({
+                    source: {id: place.joint.id},
+                    target: {id: pn.places[place.next[event]].joint.id},
+                    attrs: {
+                        line: {
+                            strokeWidth: 2
+                        },
+                        wrapper: {
+                            cursor: 'default'
+                        }
+                    },
+                    labels: [{
+                        position: {
+                            distance: 0.5,
+                            offset: 0,
+                            args: {
+                                keepGradient: true,
+                                ensureLegibility: true
+                            }
+                        },
+                        attrs: {
+                            text: {
+                                text: event,
+                                fontWeight: 'bold'
+                            }
+                        }
+                    }]
+                });
 
+                link.addTo(self._jointPN);
+                place.jointNext[event] = link;
+            })
+                //now refresh the visualization
+                self._jointPaper.updateViews();
+                self._decorateMachine();   
+
+         })
     };
+    
+
 
     PetriVizWidget.prototype.fireEvent = function (event) {
         const self = this;
-        const current = self._webgmePN.states[self._webgmePN.current];
+        const current = self._webgmePN.places[self._webgmePN.current];
         const link = current.jointNext[event];
         const linkView = link.findView(self._jointPaper);
         linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
@@ -130,11 +202,11 @@ define(['jointjs', 'css!./styles/PetriVizWidget.css'], function (joint) {
 
     PetriVizWidget.prototype._decorateMachine = function() {
         const pn = this._webgmePN;
-        Object.keys(pn.states).forEach(stateId => {
-            pn.states[stateId].joint.attr('body/stroke', '#333333');
+        Object.keys(pn.places).forEach(placeId => {
+            pn.places[placeId].joint.attr('body/stroke', '#333333');
         });
-        pn.states[pn.current].joint.attr('body/stroke', 'blue');
-        pn.setFireableEvents(Object.keys(pn.states[pn.current].next));
+        pn.places[pn.current].joint.attr('body/stroke', 'blue');
+        pn.setFireableEvents(Object.keys(pn.places[pn.current].next));
     };
 
     PetriVizWidget.prototype._setCurrentState = function(newCurrent) {
@@ -142,7 +214,9 @@ define(['jointjs', 'css!./styles/PetriVizWidget.css'], function (joint) {
         this._decorateMachine();
     };
     
-
+    PetriVizWidget.prototype._getCurrent = function(){
+        return this._webgmePN.current;
+    }
     /* * * * * * * * Visualizer event handlers * * * * * * * */
 
     /* * * * * * * * Visualizer life cycle callbacks * * * * * * * */

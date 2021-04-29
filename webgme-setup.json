@@ -12,13 +12,6 @@
       }
     },
     "visualizers": {
-      "miniViz": {
-        "src": "panels/miniViz/miniVizPanel",
-        "title": "miniViz",
-        "panel": "src/visualizers/panels/miniViz",
-        "secondary": false,
-        "widget": "src/visualizers/widgets/miniViz"
-      },
       "PetriViz": {
         "src": "panels/PetriViz/PetriVizPanel",
         "title": "PetriViz",
@@ -26,11 +19,19 @@
         "secondary": false,
         "widget": "src/visualizers/widgets/PetriViz"
       }
-    }
+    },
+    "addons": {},
+    "decorators": {},
+    "layouts": {},
+    "routers": {}
   },
   "dependencies": {
     "plugins": {},
     "seeds": {},
-    "visualizers": {}
+    "visualizers": {},
+    "addons": {},
+    "decorators": {},
+    "layouts": {},
+    "routers": {}
   }
 }

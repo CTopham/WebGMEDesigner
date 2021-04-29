@@ -111,7 +111,7 @@ define([
     };
 
     /* * * * * * * * Machine manipulation functions * * * * * * * */
-    PetriVizControl.prototype._initPN = function () {
+    PetriVizControl.prototype._initPN = function (msg) {
         const self = this;
         //just for the ease of use, lets create a META dictionary
         const rawMETA = self._client.getAllMetaNodes();
@@ -122,13 +122,15 @@ define([
         //now we collect all data we need for network visualization
         //we need our states (names, position, type), need the set of next state (with event names)
         // META is name:ID
+    
         const pnNode = self._client.getNode(self._currentNodeId);
         const elementIds = pnNode.getChildrenIds(); //childnodes
         const pn = {init: elementIds.slice(-1).pop(), places:{}};
+        pn.update = null;
         elementIds.forEach(elementId => {
             const node = self._client.getNode(elementId);
             // the simple way of checking type
-            if (node.isTypeOf(META['Place'])) {
+            if (node.isTypeOf(META['Place']) || (node.isTypeOf(META['Transition']))) {
                 //right now we only interested in places...
                 const place = {name: node.getAttribute('name'), next:{}, markers: {}, position: node.getRegistry('position')};
                 // one way to check meta-type in the client context - though it does not check for generalization types like place
@@ -138,18 +140,35 @@ define([
                 elementIds.forEach(nextId => {
                     const nextNode = self._client.getNode(nextId);
                     if(nextNode.isTypeOf(META['P2T']) && nextNode.getPointerId('src') === elementId) {
-                        place.next[nextNode.getAttribute('event')] = nextNode.getPointerId('dst');
+                        place.next[nextNode.getAttribute('name')] = nextNode.getPointerId('dst');
+                    }
+                    if(nextNode.isTypeOf(META['T2P']) && nextNode.getPointerId('src') === elementId) {
+                        place.next[nextNode.getAttribute('name')] = nextNode.getPointerId('dst');
                     }
                 });
                 pn.places[elementId] = place;
             }
-            if (node.isTypeOf(META['Transition'])) {
-                const transition = {name: node.getAttribute('name'), next:{}, position: node.getRegistry('position')};
-                
-            }
         });
         pn.setFireableEvents = this.setFireableEvents;
-
+        // This is getting triggered by our play button, it passed current node, if its not beginning start deducting
+        if (msg == null){
+            // Dont deduct any markers, this is initial state
+            pn.current = '/4/H'
+        }else{
+            // Take the current state msg, deduct 1 marker, add 1 marker to next node
+            pn.current = msg;// set our current node, just an ID, not an object
+            let nexter = null;
+            if (msg == '/4/H'){
+                nexter = '/4/P'
+            }
+            else if(msg == '/4/P'){
+                nexter = '/4/m'
+            }
+            else if(msg == '/4/m'){
+                nexter = '/4/m'
+            };
+            pn.update = [msg,nexter];
+        }
         self._widget.initMachine(pn);
     };
 
@@ -158,11 +177,12 @@ define([
         self._networkRootLoaded = false;
         self._widget.destroyMachine();
     };
-
+    
     PetriVizControl.prototype.setFireableEvents = function (events) {
         this._fireableEvents = events;
+        //console.log(this._fireableEvents)
         if (events && events.length > 1) {
-            // we need to fill the dropdow button with options
+            //fill the dropdown button with options
             this.$btnEventSelector.clear();
             events.forEach(event => {
                 this.$btnEventSelector.addButton({
@@ -178,7 +198,7 @@ define([
             this._fireableEvents = null;
         }
 
-        this._displayToolbarItems();
+       //this._displayToolbarItems();
     };
 
 
@@ -213,7 +233,6 @@ define([
 
     /* * * * * * * * * * Updating the toolbar * * * * * * * * * */
     PetriVizControl.prototype._displayToolbarItems = function () {
-
         if (this._toolbarInitialized === true) {
             for (var i = this._toolbarItems.length; i--;) {
                 this._toolbarItems[i].show();
@@ -250,15 +269,25 @@ define([
         this._toolbarItems.push(toolBar.addSeparator());
 
         /************** Go to hierarchical parent button ****************/
-        this.$btnModelHierarchyUp = toolBar.addButton({
-            title: 'Go to parent',
-            icon: 'glyphicon glyphicon-circle-arrow-up',
+        this.$btnPetriClassification = toolBar.addButton({
+            title: 'Petri Classifications',
+            icon: 'glyphicon glyphicon-road',
             clickFn: function (/*data*/) {
-                WebGMEGlobal.State.registerActiveObject(self._currentNodeParentId);
+                const context = self._client.getCurrentPluginContext('miniPlug',self._currentNodeId, []);
+                // !!! it is important to fill out or pass an empty object as the plugin config otherwise we might get errors...
+                context.pluginConfig = {};
+                self._client.runServerPlugin(
+                    'miniPlug', 
+                    context, 
+                    function(err, result){
+                        // here comes any additional processing of results or potential errors.
+                        console.log('plugin err:', err);
+                        console.log('plugin result:', result);
+                });
             }
         });
-        this._toolbarItems.push(this.$btnModelHierarchyUp);
-        this.$btnModelHierarchyUp.hide();
+        this._toolbarItems.push(this.$btnPetriClassification);
+        this.$btnPetriClassification.hide();
 
         /************** Checkbox example *******************/
 
@@ -271,7 +300,34 @@ define([
         });
         this._toolbarItems.push(this.$cbShowConnection);
 
+        // Play Button
+        this.$btnSingleEvent = toolBar.addButton({
+            title: 'Fire event',
+            icon: 'glyphicon glyphicon-play',
+            clickFn: function (/*data*/) {
+                // pass in current node
+                //console.log(self._widget._getCurrent())
+                // have login in init pn to subtract from current and dd to next
+                self._initPN(self._widget._getCurrent())
+            }
+        });
+
+        // Reset Button
+        this.$btnReset = toolBar.addButton({
+            title: 'Reset',
+            icon: 'glyphicon glyphicon-repeat',
+            clickFn: function (/*data*/) {
+                self._initPN()
+            }
+        });
+        
+        this._toolbarItems.push(this.$btnReset);
+        this._toolbarItems.push(this.$btnSingleEvent);
+        this.$btnSingleEvent.hide();
         this._toolbarInitialized = true;
+
+
+
     };
 
     return PetriVizControl;
