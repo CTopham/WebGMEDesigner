@@ -24,6 +24,7 @@
 Then, run `webgme start` from the project root to start . Finally, navigate to `http://localhost:8888` to start using MiniProjectA!
 
 - How to start modeling once the studio is installed
+
     Once the model is built you will be able to select the 'composition' view at the root level on the top left corner of the screen, under the visualizer list. In this list you will see a document icon that says 'petri'. Drag that onto the workspace in the center of the screen then double click it. You will now be in a blank workspace, on the left side you will see all the nodes you can use as building blocks to build your domain specific language. Start with a 'place' then add transitions between additional places. Then connect your places with arks by dragging the cursor from one place to the next. Lastly set your markers up by double clicking a place and dragging over the set amount of makers you would like the intial state of the place to have.
 
 - Once a network is build, what feature your studio provides and how can the user use
