@@ -1,9 +1,9 @@
 # Craig Topham MiniProject
-# Model Integrated Computing
+## Model Integrated Computing
 
 
-# Model and Domain Information
--What is the domain about
+## Model and Domain Information
+- What is the domain about
 
     The domain is a petri net which allows the user to set a required marker count in order to succesfully fire. The importannce of such a domain could allow for better views into semantics controls in systems which require barrier synchronization. The domain meta model contains states such as 'places' and and transitions. The linkage inherit from 'arks'. The Arks are delineated into 2 categories depending if 
     they are coming a transition or a place.
