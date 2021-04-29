@@ -3,11 +3,13 @@
 
 
 # Model and Domain Information
-● What is the domain about
+-What is the domain about
+
     The domain is a petri net which allows the user to set a required marker count in order to succesfully fire. The importannce of such a domain could allow for better views into semantics controls in systems which require barrier synchronization. The domain meta model contains states such as 'places' and and transitions. The linkage inherit from 'arks'. The Arks are delineated into 2 categories depending if 
     they are coming a transition or a place.
 
 - A few sentence on the typical use-cases of the domain
+
     For a typical use case I believe an example would best start the imagination. The scenario is you working at a golf club manufacturing plant as the lead engineer to make the world best 9 iron! Your idea is have the machinery weld together the pieces of the golf club at the more optimized moment, when the shaft is at the hottest temperature. In order to accomplish this you will need to model your strategy. You do this by using a petri net! In the model you set up 3 places, one for each triangluar point on the shaft of the club. You find that the club is best heated when you dab the machines torch against the shaft top point 4 times the left point 2 times and the right point 2 times. The model can be demonstrated in the petri net by 3 places, one for each point in the shaft, in those places the markers will correspond to every torch dab against its target. The running result of the model will display how to heat up the golf clubs shaft at the best time and sequence to build the strongest golf club the universe has every seen.
 
 
