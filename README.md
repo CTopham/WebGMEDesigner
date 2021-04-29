@@ -32,8 +32,9 @@ those functions
 
     The Design studion will provide a robust interpreter to help clarify what type of petri net you build. This will help to identify if your petri net conforms to the type of model you are attempting to make. If you click the 'road' button in the top left side of the tool bar you will notice notifications that will begin popping up on the bottom right side of the screen. These notifications will a a variation of the following: 
     NOT a free choice petri net
-            - Free Choice Petri Net
-            - StateMachine Petri Net
-            - NOT a StateMachine Petri Net'
-            - Marked Graph Petri Net
-            - NOT a Marked Graph Petri Net
+
+- Free Choice Petri Net
+- StateMachine Petri Net
+- NOT a StateMachine Petri Net'
+- Marked Graph Petri Net
+- NOT a Marked Graph Petri Net
